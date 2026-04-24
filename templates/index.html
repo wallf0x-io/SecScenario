@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — SecScenario{% endblock %}
+
+{% block content %}
+<section class="dash-head">
+  <h1 class="dash-title">Vulnerability Report/Writeup → CTF Pipeline</h1>
+  <p class="dash-sub muted">Upload a vulnerability blog or report. SecScenario analyzes it and builds a runnable CTF replica on your machine.</p>
+</section>
+<div id="hero3d" class="hero3d" aria-hidden="true"></div>
+
+<div class="stat-strip">
+  <div class="stat-tile">
+    <div class="stat-icon">📄</div>
+    <div class="stat-body">
+      <span class="stat-value">{{ reports_total }}</span>
+      <span class="stat-label">Reports Ingested</span>
+    </div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-icon">🏁</div>
+    <div class="stat-body">
+      <span class="stat-value">{{ challenges_total }}</span>
+      <span class="stat-label">Challenges Built</span>
+    </div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-icon">🛰</div>
+    <div class="stat-body">
+      <span class="stat-value">5100-5499</span>
+      <span class="stat-label">Port Range</span>
+    </div>
+  </div>
+</div>
+
+<section class="grid">
+  <div class="card">
+    <h2>
+      Uploaded Reports <span class="count">{{ reports_total }}</span>
+      {% if reports_total > 5 %}
+        <a class="view-all" href="{{ url_for('list_reports') }}">View all →</a>
+      {% else %}
+        <a class="view-all" href="{{ url_for('list_reports') }}">View all →</a>
+      {% endif %}
+    </h2>
+    {% if reports %}
+      <ul class="list">
+        {% for r in reports %}
+          <li class="list-row">
+            <a class="list-link" href="{{ url_for('view_report', report_id=r.id) }}">
+              <span class="file-icon">📄</span>
+              <span class="file-meta">
+                <strong>{{ r.original_name }}</strong>
+                <small>{{ r.file_type|upper }} · {{ (r.size_bytes / 1024)|round(1) }} KB · {{ r.uploaded_at }}</small>
+              </span>
+              <span class="badge badge-{{ r.status }}">{{ r.status }}</span>
+            </a>
+            <button class="btn-del" data-del-report="{{ r.id }}" title="Delete report and any challenges built from it">🗑</button>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="empty">
+        <div class="empty-icon">📥</div>
+        <p>No reports yet — upload a vulnerability writeup to start.</p>
+        <a href="{{ url_for('upload') }}" class="btn-primary">Upload Report</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>
+      Generated Challenges <span class="count">{{ challenges_total }}</span>
+      <a class="view-all" href="{{ url_for('list_challenges') }}">View all →</a>
+    </h2>
+    {% if challenges %}
+      <ul class="list">
+        {% for c in challenges %}
+          <li class="list-row">
+            <a class="list-link" href="{{ url_for('view_challenge', challenge_id=c.id) }}">
+              <span class="file-icon">🏁</span>
+              <span class="file-meta">
+                <strong>{{ c.name }}</strong>
+                <small>{{ c.vuln_type }} · {{ c.difficulty }} · port {{ c.port }}</small>
+              </span>
+              <span class="badge badge-sev-{{ (c.severity or 'low')|lower }}">{{ c.severity or '?' }}</span>
+            </a>
+            <button class="btn-del" data-del-challenge="{{ c.id }}" title="Delete challenge (stops it and removes files)">🗑</button>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="empty">
+        <div class="empty-icon">🏴</div>
+        <p>No challenges built yet. Analyze a report to generate one.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

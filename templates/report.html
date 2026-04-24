@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}{{ report.original_name }} — SecScenario{% endblock %}
+
+{% block content %}
+<section class="report">
+  <div class="crumbs"><a href="{{ url_for('index') }}">← Dashboard</a></div>
+
+  <header class="report-head">
+    <div class="head-row">
+      <h1>{{ report.original_name }}</h1>
+      <button class="btn btn-danger" data-del-report="{{ report.id }}">🗑 Delete</button>
+    </div>
+    <div class="meta">
+      <span class="badge">{{ report.file_type|upper }}</span>
+      <span>{{ (report.size_bytes / 1024)|round(1) }} KB</span>
+      <span>{{ report.uploaded_at }}</span>
+      <span class="badge badge-{{ report.status }}">{{ report.status }}</span>
+    </div>
+  </header>
+
+  <div class="panel">
+    <h2>Extracted Text</h2>
+    <pre class="text-dump">{{ report.extracted_text or '(no text extracted)' }}</pre>
+  </div>
+
+  <div class="panel" id="analysis-panel">
+    <div class="panel-head">
+      <h2>Vulnerability Analysis</h2>
+      {% if not analysis %}
+        <button class="btn-primary" id="analyze-btn" data-id="{{ report.id }}">🔍 Run Analysis</button>
+      {% else %}
+        <button class="btn" id="analyze-btn" data-id="{{ report.id }}">↻ Re-analyze</button>
+      {% endif %}
+    </div>
+
+    <div id="analysis-body">
+      {% if analysis %}
+        {% include "_analysis_fragment.html" %}
+      {% else %}
+        <p class="muted">Click "Run Analysis" to let Claude extract the vulnerability details.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="panel" id="challenge-panel" {% if not analysis %}hidden{% endif %}>
+    <div class="panel-head">
+      <h2>Generate CTF Challenge</h2>
+      <button class="btn-primary" id="generate-btn" data-id="{{ report.id }}">🛠 Build Challenge</button>
+    </div>
+    <div id="generate-status" class="muted">A runnable replica will be created in <code>challenges/</code>.</div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.REPORT_ID = {{ report.id }};
+</script>
+<script src="{{ url_for('static', filename='js/report.js') }}"></script>
+{% endblock %}

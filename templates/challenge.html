@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}{{ ch.name }} — Challenge{% endblock %}
+
+{% block content %}
+<section class="ctf-room">
+  <div class="crumbs">
+    <a href="{{ url_for('index') }}">← All Rooms</a>
+    <button class="btn btn-danger" data-del-challenge="{{ ch.id }}">🗑 Delete Challenge</button>
+  </div>
+
+  <!-- ROOM HERO -->
+  <header class="room-hero">
+    <div class="room-hero-main">
+      <div class="room-chip-row">
+        <span class="badge">{{ ch.category }}</span>
+        <span class="badge badge-sev-{{ (ch.severity or 'low')|lower }}">{{ ch.severity or 'Unknown' }}</span>
+        <span class="badge">Difficulty: {{ ch.difficulty }}</span>
+        <span class="badge">Port {{ ch.port }}</span>
+      </div>
+      <h1 class="room-title">{{ ch.name }}</h1>
+      {% if spec.tagline %}
+        <p class="room-tagline">{{ spec.tagline }}</p>
+      {% endif %}
+      {% if spec.brand and spec.brand.product_name %}
+        <p class="room-brand muted">Target: <strong>{{ spec.brand.product_name }}</strong>
+          {% if spec.brand.theme_summary %} · {{ spec.brand.theme_summary }}{% endif %}
+        </p>
+      {% endif %}
+    </div>
+  </header>
+
+  <!-- LAUNCHER -->
+  <div class="launcher" id="launcher" data-id="{{ ch.id }}" data-port="{{ ch.port }}">
+    <div class="launcher-row">
+      <div>
+        <div class="launcher-status">
+          <span class="status-dot" id="status-dot"></span>
+          <span id="status-text">Checking…</span>
+        </div>
+        <div class="launcher-url">
+          <a id="challenge-link" href="http://127.0.0.1:{{ ch.port }}" target="_blank" rel="noopener">
+            http://127.0.0.1:{{ ch.port }}
+          </a>
+        </div>
+      </div>
+      <div class="launcher-actions">
+        <button id="launch-btn" class="btn-primary btn-lg">🚀 Start Room</button>
+        <button id="stop-btn" class="btn btn-lg" hidden>⏹ Stop</button>
+        <button id="open-btn" class="btn btn-lg" hidden>↗ Open Target</button>
+      </div>
+    </div>
+    <details class="runtime-log" id="runtime-log-wrap" hidden>
+      <summary>Runtime log</summary>
+      <pre id="runtime-log" class="code"></pre>
+    </details>
+  </div>
+
+  <!-- MISSION BRIEFING -->
+  {% if spec.briefing or ch.description %}
+  <div class="panel briefing-panel">
+    <div class="panel-accent"></div>
+    <h2>🎯 Mission Briefing</h2>
+    <p class="briefing-body">{{ spec.briefing or ch.description }}</p>
+    {% if spec.learning_objectives %}
+      <div class="objectives">
+        <h3>Learning Objectives</h3>
+        <ul class="obj-list">
+          {% for obj in spec.learning_objectives %}
+            <li>{{ obj }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- TASKS -->
+  {% if spec.tasks %}
+  <div class="panel tasks-panel" id="tasks-panel" data-id="{{ ch.id }}">
+    <h2>🧩 Tasks</h2>
+    <p class="muted">Work through the objectives. Submit each answer as you find it.</p>
+    <ol class="task-list">
+      {% for t in spec.tasks %}
+        <li class="task" data-n="{{ t.n }}">
+          <div class="task-head">
+            <span class="task-num">{{ t.n if t.n != 999 else 'FLAG' }}</span>
+            <span class="task-q">{{ t.question }}</span>
+            <span class="task-state" data-state="pending">Pending</span>
+          </div>
+          <div class="task-input">
+            <input type="text" class="task-answer" placeholder="Your answer…" autocomplete="off" spellcheck="false">
+            <button type="button" class="btn task-submit">Submit</button>
+          </div>
+        </li>
+      {% endfor %}
+    </ol>
+    <div class="score-bar">
+      <div class="score-bar-fill" id="score-fill" style="width: 0%"></div>
+    </div>
+    <p class="score-text"><span id="score-done">0</span> / {{ spec.tasks|length }} solved</p>
+  </div>
+  {% endif %}
+
+  <!-- HINT -->
+  {% if spec.hint %}
+  <div class="panel hint-panel">
+    <details>
+      <summary>💡 Need a hint?</summary>
+      <p>{{ spec.hint }}</p>
+    </details>
+  </div>
+  {% endif %}
+
+  <!-- SOLUTION WALKTHROUGH (spoilers) -->
+  {% if files %}
+  <div class="panel">
+    <details>
+      <summary><h2 style="display:inline; margin:0;">📖 Solution Walkthrough (spoilers)</h2></summary>
+      <p class="muted small" style="margin-top:10px">⚠️ Full solve steps. Open only after you've tried solving.</p>
+      {% for f in files %}
+        <details class="file-block">
+          <summary>{{ f.name }}</summary>
+          <pre class="code">{{ f.content }}</pre>
+        </details>
+      {% endfor %}
+    </details>
+  </div>
+  {% endif %}
+
+  <div class="manual-run">
+    <details>
+      <summary>Manual run (optional)</summary>
+      <pre class="run-box">cd {{ ch.folder_path }}
+pip install -r requirements.txt
+python app.py</pre>
+    </details>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/challenge.js') }}"></script>
+<script src="{{ url_for('static', filename='js/tasks.js') }}"></script>
+{% endblock %}

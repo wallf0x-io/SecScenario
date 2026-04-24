@@ -1,0 +1,20 @@
+<div class="analysis">
+  <div class="analysis-grid">
+    <div><label>Title</label><div>{{ analysis.title or '—' }}</div></div>
+    <div><label>Vulnerability Type</label><div><strong>{{ analysis.vuln_type or '—' }}</strong></div></div>
+    <div><label>Severity</label>
+      <div><span class="badge badge-sev-{{ (analysis.severity or 'low')|lower }}">{{ analysis.severity or '—' }}</span></div>
+    </div>
+    <div><label>CVE</label><div>{{ analysis.cve or '—' }}</div></div>
+    <div><label>Affected Component</label><div>{{ analysis.affected_component or '—' }}</div></div>
+  </div>
+
+  <h3>Summary</h3>
+  <p>{{ analysis.summary or '—' }}</p>
+
+  <h3>Root Cause</h3>
+  <p>{{ analysis.root_cause or '—' }}</p>
+
+  <h3>Exploitation Steps</h3>
+  <pre class="steps">{{ analysis.exploitation_steps or '—' }}</pre>
+</div>

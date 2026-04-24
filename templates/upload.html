@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Upload — SecScenario{% endblock %}
+
+{% block content %}
+<section class="upload-wrap">
+  <h1>New Report</h1>
+  <p class="muted">Choose where the vulnerability write-up comes from.</p>
+
+  <div class="source-tabs" role="tablist">
+    <button type="button" class="source-tab active" data-src="file" role="tab">
+      <span class="src-icon">📁</span>
+      <span class="src-label">File / Folder</span>
+      <small>PDF · MD · HTML · TXT · ZIP</small>
+    </button>
+    <button type="button" class="source-tab" data-src="blog" role="tab">
+      <span class="src-icon">📝</span>
+      <span class="src-label">Blog URL</span>
+      <small>Medium · dev.to · security blogs</small>
+    </button>
+    <button type="button" class="source-tab" data-src="report" role="tab">
+      <span class="src-icon">🛡️</span>
+      <span class="src-label">Report URL</span>
+      <small>HackerOne · Bugcrowd · YesWeHack · Intigriti · Google BBP</small>
+    </button>
+  </div>
+
+  <!-- FILE PANEL -->
+  <div class="source-panel" data-panel="file">
+    <form id="upload-form" class="drop-form" method="POST" action="{{ url_for('upload') }}" enctype="multipart/form-data">
+      <div id="drop-zone" class="drop-zone">
+        <div class="drop-inner">
+          <div class="drop-icon">☁️</div>
+          <p><strong>Drag &amp; drop files or folders here</strong></p>
+          <p class="muted">or click to browse</p>
+          <input type="file" id="file-input" name="files" multiple webkitdirectory directory mozdirectory hidden>
+          <input type="file" id="file-input-files" name="files" multiple hidden>
+          <div class="drop-actions">
+            <button type="button" class="btn" id="pick-files">Pick Files</button>
+            <button type="button" class="btn" id="pick-folder">Pick Folder</button>
+          </div>
+        </div>
+      </div>
+
+      <ul id="file-list" class="file-list"></ul>
+
+      <div class="form-row">
+        <button type="submit" class="btn-primary btn-lg" id="submit-btn" disabled>Upload &amp; Analyze</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- BLOG URL PANEL -->
+  <div class="source-panel" data-panel="blog" hidden>
+    <form class="url-form" method="POST" action="{{ url_for('upload_url') }}">
+      <input type="hidden" name="source_type" value="blog">
+      <label class="field">
+        <span class="field-label">Blog URL</span>
+        <input type="url" name="url" placeholder="https://medium.com/@author/vulnerability-writeup-..." required>
+      </label>
+      <div class="platform-hints">
+        <span class="muted">Works best with:</span>
+        <span class="chip">Medium</span>
+        <span class="chip">dev.to</span>
+        <span class="chip">Substack</span>
+        <span class="chip">Hashnode</span>
+        <span class="chip">GitHub Pages</span>
+        <span class="chip">Personal blogs</span>
+      </div>
+      <p class="muted small">
+        Paste any public write-up. SecScenario fetches the page, extracts the article
+        text, and runs it through the analysis pipeline.
+      </p>
+      <div class="form-row">
+        <button type="submit" class="btn-primary btn-lg">🔗 Fetch &amp; Analyze</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- REPORT URL PANEL -->
+  <div class="source-panel" data-panel="report" hidden>
+    <form class="url-form" method="POST" action="{{ url_for('upload_url') }}">
+      <input type="hidden" name="source_type" value="report">
+      <label class="field">
+        <span class="field-label">Report URL</span>
+        <input type="url" name="url" placeholder="https://hackerone.com/reports/123456 or https://bugcrowd.com/disclosures/..." required>
+      </label>
+      <div class="platform-hints">
+        <span class="muted">Supported platforms:</span>
+        <span class="chip">HackerOne</span>
+        <span class="chip">Bugcrowd</span>
+        <span class="chip">YesWeHack</span>
+        <span class="chip">Intigriti</span>
+        <span class="chip">Google BBP</span>
+      </div>
+      <p class="muted small">
+        Only <strong>publicly disclosed</strong> reports can be fetched. Private/authenticated
+        reports require you to export and upload the file instead.
+      </p>
+      <div class="form-row">
+        <button type="submit" class="btn-primary btn-lg">🔗 Fetch &amp; Analyze</button>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}

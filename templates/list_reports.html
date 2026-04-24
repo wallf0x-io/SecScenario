@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}All Reports — SecScenario{% endblock %}
+{% block content %}
+<section>
+  <div class="crumbs"><a href="{{ url_for('index') }}">← Dashboard</a></div>
+  <header class="head-row">
+    <h1>All Uploaded Reports <span class="count">({{ reports|length }})</span></h1>
+    <a href="{{ url_for('upload') }}" class="btn-primary">Upload Report</a>
+  </header>
+
+  <div class="card">
+    {% if reports %}
+      <ul class="list">
+        {% for r in reports %}
+          <li class="list-row">
+            <a class="list-link" href="{{ url_for('view_report', report_id=r.id) }}">
+              <span class="file-icon">📄</span>
+              <span class="file-meta">
+                <strong>{{ r.original_name }}</strong>
+                <small>{{ r.file_type|upper }} · {{ (r.size_bytes / 1024)|round(1) }} KB · {{ r.uploaded_at }}</small>
+              </span>
+              <span class="badge badge-{{ r.status }}">{{ r.status }}</span>
+            </a>
+            <button class="btn-del" data-del-report="{{ r.id }}" title="Delete report">🗑</button>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">No reports yet.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

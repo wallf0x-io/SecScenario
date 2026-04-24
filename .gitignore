@@ -1,0 +1,19 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+instance/
+uploads/
+challenges/
+*.db
+*.sqlite
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Generated source bundle
+SecScenario_source.pdf
+

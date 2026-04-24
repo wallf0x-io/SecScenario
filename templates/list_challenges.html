@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}All Challenges — SecScenario{% endblock %}
+{% block content %}
+<section>
+  <div class="crumbs"><a href="{{ url_for('index') }}">← Dashboard</a></div>
+  <header class="head-row">
+    <h1>All Generated Challenges <span class="count">({{ challenges|length }})</span></h1>
+  </header>
+
+  <div class="card">
+    {% if challenges %}
+      <ul class="list">
+        {% for c in challenges %}
+          <li class="list-row">
+            <a class="list-link" href="{{ url_for('view_challenge', challenge_id=c.id) }}">
+              <span class="file-icon">🏁</span>
+              <span class="file-meta">
+                <strong>{{ c.name }}</strong>
+                <small>{{ c.vuln_type }} · {{ c.difficulty }} · port {{ c.port }}</small>
+              </span>
+              <span class="badge badge-sev-{{ (c.severity or 'low')|lower }}">{{ c.severity or '?' }}</span>
+            </a>
+            <button class="btn-del" data-del-challenge="{{ c.id }}" title="Delete challenge">🗑</button>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">No challenges yet. Analyze a report to build one.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

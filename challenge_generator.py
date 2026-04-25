@@ -5,6 +5,7 @@ that faithfully reproduces the described vulnerability. The challenge is
 written to challenges/<id>/ with a README, a flag file, and a run script.
 """
 import json
+import os
 import re
 import secrets
 import string
@@ -231,7 +232,11 @@ def _make_flag() -> str:
 
 def _pick_port(used_ports: set[int]) -> int:
     import socket
-    for p in range(5100, 5500):
+    # Range is overridable so containerized runs can use a non-overlapping band
+    # (e.g. 6100-6500) and coexist with a local `python app.py` on 5100-5500.
+    base = int(os.getenv("CHALLENGE_PORT_BASE", "5100"))
+    end = int(os.getenv("CHALLENGE_PORT_END", "5500"))
+    for p in range(base, end):
         if p in used_ports:
             continue
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -303,11 +308,22 @@ def generate_challenge(analysis: dict, used_ports: set[int], report_text: str = 
     folder = Config.CHALLENGES_DIR / f"{challenge_name}_{port}"
     folder.mkdir(parents=True, exist_ok=True)
 
+    # When running inside Docker the parent process exports CHALLENGE_HOST=0.0.0.0
+    # so the spawned challenge is reachable from the host's published port. In
+    # local mode the variable is unset and the original 127.0.0.1 bind survives.
+    challenge_host = os.getenv("CHALLENGE_HOST", "").strip()
+
     for f in spec.get("files", []):
         path = folder / f["path"]
         path.parent.mkdir(parents=True, exist_ok=True)
         content = f.get("content", "")
         content = content.replace("FLAG_PLACEHOLDER", flag)
+        if challenge_host and path.name == "app.py":
+            content = re.sub(
+                r"""(["'])127\.0\.0\.1\1""",
+                f'"{challenge_host}"',
+                content,
+            )
         path.write_text(content, encoding="utf-8")
 
     # also write the flag file explicitly in case the model forgot

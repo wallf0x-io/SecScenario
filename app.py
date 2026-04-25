@@ -281,20 +281,29 @@ def create_app() -> Flask:
         ch = db.get_challenge(challenge_id)
         if not ch:
             return jsonify({"ok": False, "error": "Challenge not found"}), 404
-        runner.stop(challenge_id, port=ch.get("port"))
-        return jsonify({"ok": True, "state": "stopped"})
+        err = None
+        try:
+            runner.stop(challenge_id, port=ch.get("port"))
+        except Exception as e:
+            err = f"{type(e).__name__}: {e}"
+            app.logger.exception("runner.stop failed for challenge %s", challenge_id)
+        return jsonify({"ok": True, "state": "stopped", "error": err})
 
     @app.route("/challenge/<int:challenge_id>/status")
     def challenge_status(challenge_id):
         ch = db.get_challenge(challenge_id)
         if not ch:
             return jsonify({"ok": False, "error": "Challenge not found"}), 404
-        snap = runner.status(challenge_id, ch["port"])
+        try:
+            snap = runner.status(challenge_id, ch["port"])
+        except Exception as e:
+            app.logger.exception("runner.status failed for challenge %s", challenge_id)
+            snap = {"state": "unknown", "port": ch["port"]}
         return jsonify({
             "ok": True,
-            "state": snap["state"],
-            "port": snap["port"],
-            "url": f"http://127.0.0.1:{snap['port']}",
+            "state": snap.get("state", "unknown"),
+            "port": snap.get("port", ch["port"]),
+            "url": f"http://127.0.0.1:{snap.get('port', ch['port'])}",
             "log": runner.tail_log(challenge_id, 30),
         })
 

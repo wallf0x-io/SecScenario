@@ -1,0 +1,31 @@
+.git
+.gitignore
+.github
+.venv
+venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Runtime / generated state — mounted via volumes, don't bake into image.
+.env
+instance
+uploads
+challenges
+docker-data
+*.db
+*.sqlite
+
+# Local artifacts
+SecScenario_source.pdf
+*.log
+
+# Docker meta files (no need to ship them inside the image)
+Dockerfile
+docker-compose.yml
+.dockerignore

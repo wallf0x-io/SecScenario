@@ -1,0 +1,31 @@
+services:
+  secscenario:
+    build: .
+    image: secscenario:latest
+    container_name: secscenario
+    ports:
+      # Host:container. UI port is shifted off 5000 so a local `python app.py`
+      # on 5000 can run side-by-side without conflict. Avoid 6000 — Firefox/
+      # Chromium block it (X11 range).
+      - "8000:5000"
+      # Challenge ports are published 1:1 because the SecScenario UI redirects
+      # to http://127.0.0.1:<port>; the host port number must match what the
+      # generator picked inside the container. The 6100-6500 range stays clear
+      # of the local-mode default 5100-5500.
+      - "6100-6500:6100-6500"
+    env_file:
+      - .env
+    environment:
+      FLASK_HOST: "0.0.0.0"
+      FLASK_PORT: "5000"
+      FLASK_DEBUG: "0"
+      CHALLENGE_HOST: "0.0.0.0"
+      CHALLENGE_PORT_BASE: "6100"
+      CHALLENGE_PORT_END: "6500"
+    volumes:
+      # Separate data dirs for Docker so SQLite/uploads/challenges don't
+      # collide with the local-mode `instance/`, `uploads/`, `challenges/`.
+      - ./docker-data/instance:/app/instance
+      - ./docker-data/uploads:/app/uploads
+      - ./docker-data/challenges:/app/challenges
+    restart: unless-stopped

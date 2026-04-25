@@ -229,21 +229,32 @@ def tail_log(challenge_id: int, max_lines: int = 60) -> str:
 
 
 def _pids_on_port(port: int) -> list[int]:
-    """Return PIDs of processes currently listening on the given TCP port."""
+    """Return PIDs of processes currently listening on the given TCP port.
+
+    Best-effort only: any introspection failure (restricted /proc inside
+    containers, OS quirks, missing perms) yields an empty list rather than
+    raising, since the caller falls back to a port-availability check.
+    """
     pids: set[int] = set()
     try:
         for c in psutil.net_connections(kind="tcp"):
             if c.status == psutil.CONN_LISTEN and c.laddr and c.laddr.port == port and c.pid:
                 pids.add(c.pid)
-    except (psutil.AccessDenied, PermissionError):
-        # On Windows without admin, net_connections may fail. Fall back:
+        return list(pids)
+    except Exception:
+        pass
+    try:
         for proc in psutil.process_iter(attrs=["pid"]):
             try:
-                for c in proc.connections(kind="tcp"):
+                conns = proc.net_connections(kind="tcp") if hasattr(proc, "net_connections") \
+                    else proc.connections(kind="tcp")
+                for c in conns:
                     if c.status == psutil.CONN_LISTEN and c.laddr and c.laddr.port == port:
                         pids.add(proc.info["pid"])
             except Exception:
                 continue
+    except Exception:
+        pass
     return list(pids)
 
 
